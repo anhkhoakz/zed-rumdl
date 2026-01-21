@@ -1,8 +1,8 @@
+authors = ["Inflation <me@kosmopho.dev>", "anhkhoakz <anhkhoakz.dev>"]
 id = "rumdl"
 name = "Rumdl Markdown Linter"
 version = "0.0.1"
 schema_version = 1
-authors = ["Inflation <me@kosmopho.dev>", "ankhoakz"]
 description = "A high-performance Markdown linter, written in Rust"
 repository = "https://github.com/anhkhoakz/zed-rumdl"
 
