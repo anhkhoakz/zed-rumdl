@@ -69,28 +69,27 @@ impl Rumdl {
         Ok(asset)
     }
 
-    fn find_linux_musl_asset<'a>(
-        release: &'a zed::GithubRelease,
-        arch_name: &str,
-        file_ext: &str,
-        gnu_error: &str,
-    ) -> zed::Result<&'a zed::GithubReleaseAsset> {
-        Self::find_release_asset(release, arch_name, "unknown-linux-musl", file_ext)
-            .map_err(|musl_err| format!("{musl_err}; gnu attempt failed: {gnu_error}"))
-    }
-
     fn find_release_asset_for_platform<'a>(
         release: &'a zed::GithubRelease,
         arch_name: &str,
         platform: zed::Os,
     ) -> zed::Result<&'a zed::GithubReleaseAsset> {
         let (os_str, file_ext) = Self::os_asset_info(platform);
-        let gnu_asset = Self::find_release_asset(release, arch_name, os_str, file_ext);
-
         if platform != zed::Os::Linux {
-            return gnu_asset;
+            return Self::find_release_asset(release, arch_name, os_str, file_ext);
         }
 
+        let musl_asset =
+            Self::find_release_asset(release, arch_name, "unknown-linux-musl", file_ext);
+        if let Ok(asset) = musl_asset {
+            return Ok(asset);
+        }
+
+        let musl_error = musl_asset
+            .err()
+            .unwrap_or_else(|| "unknown linux musl asset failure".into());
+
+        let gnu_asset = Self::find_release_asset(release, arch_name, os_str, file_ext);
         if let Ok(asset) = gnu_asset {
             return Ok(asset);
         }
@@ -98,7 +97,10 @@ impl Rumdl {
         let gnu_error = gnu_asset
             .err()
             .unwrap_or_else(|| "unknown linux gnu asset failure".into());
-        Self::find_linux_musl_asset(release, arch_name, file_ext, &gnu_error)
+
+        Err(format!(
+            "No compatible Rumdl binary found: musl attempt failed: {musl_error}; gnu attempt failed: {gnu_error}"
+        ))
     }
 
     fn build_versioned_binary_path(
