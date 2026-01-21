@@ -73,7 +73,7 @@ impl Rumdl {
         release: &'a zed::GithubRelease,
         arch_name: &str,
         file_ext: &str,
-        gnu_error: String,
+        gnu_error: &str,
     ) -> zed::Result<&'a zed::GithubReleaseAsset> {
         Self::find_release_asset(release, arch_name, "unknown-linux-musl", file_ext)
             .map_err(|musl_err| format!("{musl_err}; gnu attempt failed: {gnu_error}"))
@@ -98,7 +98,7 @@ impl Rumdl {
         let gnu_error = gnu_asset
             .err()
             .unwrap_or_else(|| "unknown linux gnu asset failure".into());
-        Self::find_linux_musl_asset(release, arch_name, file_ext, gnu_error)
+        Self::find_linux_musl_asset(release, arch_name, file_ext, &gnu_error)
     }
 
     fn build_versioned_binary_path(
